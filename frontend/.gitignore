@@ -12,6 +12,12 @@ dist
 dist-ssr
 *.local
 
+# Env files (avoid committing secrets)
+.env.*
+.env.local
+.env.development.local
+.env.production.local
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
@@ -22,3 +28,8 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Project-local temp files
+BACKEND_GITIGNORE_APPEND.txt
+.vite
+coverage
