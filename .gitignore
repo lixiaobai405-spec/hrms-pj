@@ -45,4 +45,11 @@ dist-ssr/
 coverage/
 
 # ===== IDE =====
+.vscode/*
+!.vscode/extensions.json
 .idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
