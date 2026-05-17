@@ -1,0 +1,7 @@
+# HRMS 后端 Python 依赖
+fastapi>=0.100.0,<1.0.0
+uvicorn>=0.22.0,<1.0.0
+sqlalchemy>=2.0.0,<3.0.0
+pymysql>=1.1.0,<2.0.0
+python-dotenv>=1.0.0,<2.0.0
+cryptography>=41.0.0

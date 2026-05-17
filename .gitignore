@@ -44,6 +44,10 @@ dist-ssr/
 .vite/
 coverage/
 
+# ===== Docker =====
+# Docker 数据卷（本地测试残留）
+hrms_mysql_data/
+
 # ===== IDE =====
 .vscode/*
 !.vscode/extensions.json

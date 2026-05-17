@@ -1,0 +1,77 @@
+# ============================================
+# HRMS Docker Compose 一键部署
+# 服务：db（MySQL 8）+ api（FastAPI）+ web（Nginx+前端）
+#
+# 启动：docker compose up -d --build
+# 访问：http://localhost
+# Swagger：http://localhost/api/docs（经 Nginx 反代）
+# 停止：docker compose down
+# 重置：docker compose down -v && docker compose up -d --build
+# ============================================
+
+services:
+  # ========== 1. MySQL 数据库 ==========
+  db:
+    image: mysql:8.0
+    container_name: hrms-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-hrms}
+      MYSQL_USER: ${MYSQL_USER:-hrms_user}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-Root@123456}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-Root@123456}
+    ports:
+      - "3306:3306"              # 可选：映射到宿主机（方便 Navicat 连接）
+    volumes:
+      - hrms_mysql_data:/var/lib/mysql                          # 数据持久化
+      - ./docker/mysql/initdb.d:/docker-entrypoint-initdb.d      # 自动初始化 SQL
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD:-Root@123456}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    networks:
+      - hrms-net
+
+  # ========== 2. FastAPI 后端 ==========
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: hrms-api
+    restart: unless-stopped
+    environment:
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_NAME: ${MYSQL_DATABASE:-hrms}
+      DB_USER: ${MYSQL_USER:-hrms_user}
+      DB_PASSWORD: ${MYSQL_PASSWORD:-Root@123456}
+    depends_on:
+      db:
+        condition: service_healthy    # 等 MySQL 完全就绪后再启动
+    networks:
+      - hrms-net
+
+  # ========== 3. Nginx + 前端静态 ==========
+  web:
+    build:
+      context: .                     # 项目根目录（需要访问 frontend/ 和 docker/nginx/）
+      dockerfile: frontend/Dockerfile
+    container_name: hrms-web
+    restart: unless-stopped
+    ports:
+      - "80:80"                      # 唯一对外入口
+    depends_on:
+      - api
+    networks:
+      - hrms-net
+
+volumes:
+  hrms_mysql_data:
+    name: hrms_mysql_data
+
+networks:
+  hrms-net:
+    name: hrms-net
+    driver: bridge
